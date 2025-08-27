@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<title>Game Urutkan Kartu</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        background-color: #0d3b66;
+        color: white;
+        text-align: center;
+        padding: 20px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+    h1, p {
+        max-width: 500px;
+    }
+    .deck {
+        display: flex;
+        justify-content: center;
+        gap: 10px;
+        margin-top: 20px;
+        max-width: 100%;
+        flex-wrap: nowrap; /* PC: satu baris */
+    }
+    .card {
+        width: 60px;
+        height: 90px;
+        background-color: #ff6f61;
+        border-radius: 8px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-size: 22px;
+        font-weight: bold;
+        color: white;
+        cursor: pointer;
+        user-select: none;
+        box-shadow: 2px 2px 6px rgba(0,0,0,0.3);
+        transition: transform 0.3s;
+    }
+    .card:hover {
+        transform: scale(1.1);
+    }
+    .hidden {
+        background-color: #ccc;
+        color: transparent;
+    }
+    button {
+        padding: 10px 20px;
+        margin: 5px;
+        font-size: 16px;
+        background-color: #f4d35e;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+    }
+    button:hover {
+        background-color: #ee964b;
+    }
+    .gif-container {
+        margin-top: 20px;
+    }
+    .gif-container img {
+        max-width: 200px;
+        border-radius: 10px;
+        box-shadow: 2px 2px 8px rgba(0,0,0,0.3);
+    }
+
+    /* HP Mode: kartu jadi 2 baris (5 atas, 5 bawah) */
+    @media (max-width: 600px) {
+        .deck {
+            flex-wrap: wrap;
+            max-width: 260px; /* 5 kartu per baris */
+        }
+        .card {
+            width: 45px;
+            height: 65px;
+            font-size: 18px;
+        }
+        button {
+            font-size: 14px;
+            padding: 8px 15px;
+        }
+    }
+</style>
+</head>
+<body>
+
+<h1>Game Urutkan Kartu</h1>
+<p>Tujuan: Urutkan kartu dari kecil ke besar.</p>
+<div class="deck" id="deck"></div>
+<div>
+    <button onclick="shuffleDeck()">Kocok Ulang</button>
+</div>
+
+<div class="gif-container">
+    <img src="https://media.giphy.com/media/JIX9t2j0ZTN9S/giphy.gif" alt="GIF Lucu">
+</div>
+
+<script>
+let cards = [];
+let openedCards = [];
+let deckElement = document.getElementById('deck');
+
+function shuffleDeck() {
+    cards = [];
+    for (let i = 1; i <= 10; i++) {
+        cards.push(i);
+    }
+    cards.sort(() => Math.random() - 0.5);
+    openedCards = [];
+    renderDeck(true);
+}
+
+function renderDeck(hidden = false) {
+    deckElement.innerHTML = '';
+    cards.forEach((num, index) => {
+        const card = document.createElement('div');
+        card.classList.add('card');
+        if (hidden) card.classList.add('hidden');
+        card.textContent = num;
+        card.addEventListener('click', () => flipCard(index));
+        deckElement.appendChild(card);
+    });
+}
+
+function flipCard(index) {
+    let cardElements = document.querySelectorAll('.card');
+    let card = cardElements[index];
+
+    // Jika kartu terbuka → tutup kembali
+    if (!card.classList.contains('hidden')) {
+        card.classList.add('hidden');
+        openedCards = openedCards.filter(i => i !== index);
+        return;
+    }
+
+    // Jika kartu tertutup → buka
+    card.classList.remove('hidden');
+    openedCards.push(index);
+
+    // Kalau ada 2 kartu terbuka → tawarkan tukar
+    if (openedCards.length === 2) {
+        setTimeout(() => {
+            let [i1, i2] = openedCards;
+            if (confirm(`Tukar kartu ${cards[i1]} dan ${cards[i2]}?`)) {
+                [cards[i1], cards[i2]] = [cards[i2], cards[i1]];
+            }
+            openedCards = [];
+            renderDeck(true);
+            checkWin();
+        }, 500);
+    }
+}
+
+function checkWin() {
+    let sorted = [...cards].sort((a, b) => a - b);
+    if (JSON.stringify(cards) === JSON.stringify(sorted)) {
+        alert("Selamat! Kartu sudah terurut!");
+        renderDeck(false);
+    }
+}
+
+shuffleDeck();
+</script>
+</body>
+</html>
